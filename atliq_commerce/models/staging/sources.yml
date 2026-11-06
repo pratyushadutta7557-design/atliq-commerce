@@ -1,0 +1,16 @@
+
+version: 2
+
+sources:
+  - name: silver
+    catalog: atliq
+    schema: silver
+    description: "Cleaned Silver-layer tables for AtliQ Commerce"
+    tables:
+      - name: customers
+      - name: products
+      - name: orders
+      - name: order_items
+      - name: payments
+      - name: web_events
+      - name: supplier_price_list
