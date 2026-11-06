@@ -54,3 +54,5 @@ The solution follows a layered data architecture:
 
 ## Execution
 Refer to the project implementation guide and individual folder documentation for setup and execution instructions.
+
+M7 CI validation in progress.
