@@ -29,8 +29,8 @@ jobs:
 
       - name: Install dbt dependencies
         working-directory: atliq_commerce
-        run: dbt deps --profiles-dir .
+        run: dbt deps --profiles-dir ..
 
       - name: Run dbt CI build
         working-directory: atliq_commerce
-        run: dbt build --target ci --profiles-dir .
+        run: dbt build --target ci --profiles-dir ..
