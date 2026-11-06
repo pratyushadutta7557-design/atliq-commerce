@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: dim_customer
+    description: "Customer dimension excluding test accounts"
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier"
+        data_tests:
+          - unique
+          - not_null
