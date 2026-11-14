@@ -252,6 +252,7 @@ display(orders.limit(10))
 
 # COMMAND ----------
 
+
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 from delta.tables import DeltaTable
@@ -267,6 +268,14 @@ orders_clean = (
     .filter(F.col("rn") == 1)
     .drop("rn")
     .withColumn("order_date", F.to_date("order_date"))
+    # Replace invalid dates using created_at
+    .withColumn(
+        "order_date",
+        F.when(
+            F.col("order_date") == F.lit("1900-01-01").cast("date"),
+            F.to_date("created_at")
+        ).otherwise(F.col("order_date"))
+    )
     .withColumn("order_amount", F.col("order_amount").cast("decimal(12,2)"))
     .filter(F.col("order_id").isNotNull())
 )
@@ -288,6 +297,12 @@ orders_clean = (
     .whenNotMatchedInsertAll()
     .execute()
 )
+
+# COMMAND ----------
+
+spark.table("atliq.silver.orders").filter(
+    F.col("order_date") == F.lit("1900-01-01").cast("date")
+).count()
 
 # COMMAND ----------
 
@@ -1000,3 +1015,38 @@ audit_record = [Row(
 spark.createDataFrame(audit_record).write.mode("append").saveAsTable(
     "atliq.silver.pipeline_audit"
 )
+
+# COMMAND ----------
+
+bronze_orders = spark.read.parquet(
+    "abfss://lakehouse@atliqcommerce20261104.dfs.core.windows.net/bronze/orders"
+)
+
+display(
+    bronze_orders.filter(
+        bronze_orders.order_id.cast("int").isin(23, 437, 629, 1132, 1163)
+    )
+)
+
+# COMMAND ----------
+
+from pyspark.sql import functions as F
+
+bronze_orders.filter(
+    F.col("order_date") == F.lit("1900-01-01").cast("date")
+).agg(
+    F.count("*").alias("affected_rows"),
+    F.count("created_at").alias("valid_created_at_rows")
+).display()
+
+# COMMAND ----------
+
+silver_orders = spark.table("atliq.silver.orders")
+
+silver_orders.filter(
+    F.col("order_date") == F.lit("1900-01-01").cast("date")
+).agg(
+    F.count("*").alias("affected_rows"),
+    F.count("created_at").alias("valid_created_at_rows"),
+    F.countDistinct("order_id").alias("distinct_orders")
+).display()
